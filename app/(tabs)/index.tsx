@@ -1,31 +1,42 @@
-import { StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { ITEMS } from "@/assets/Items";
+import { ItemList } from "@/components/Items-list";
+import ListHeader from "@/components/ListHeader";
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
-
-export default function TabOneScreen() {
+const home = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+      <FlatList
+        data={ITEMS}
+        renderItem={({ item }) => <ItemList product={item} />}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={2}
+        ListHeaderComponent={ListHeader}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.flatListContent}
+        columnWrapperStyle={styles.flatListColumn}
+        style={styles.flatList}
+      />
     </View>
   );
-}
+};
+
+export default home;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingLeft: 12,
+    paddingRight: 12,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  flatListContent: {
+    paddingBottom: 20,
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  flatListColumn: {
+    justifyContent: "space-between",
+  },
+  flatList: {
+    paddingVertical: 5,
   },
 });
