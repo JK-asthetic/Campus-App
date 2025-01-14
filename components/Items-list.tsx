@@ -1,21 +1,24 @@
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { Item } from "@/assets/types/items";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 
-export const ItemList = ({ product }: { product: Item }) => {
+export const ItemList = ({ item }: { item: Item }) => {
   return (
-    <Link asChild href={`/product/${product.slug}`}>
-      <Pressable style={styles.item}>
+    <>
+      <Pressable
+        style={styles.item}
+        onPress={() => router.push(`/items/${item.id}`)}
+      >
         <View style={styles.itemImageContainer}>
-          <Image source={product.heroImage} style={styles.itemImage} />
+          <Image source={item.heroImage} style={styles.itemImage} />
         </View>
         <View style={styles.itemTextContainer}>
-          <Text style={styles.itemTitle}>{product.title}</Text>
-          <Text style={styles.itemPrice}>${product.price.toFixed(2)}</Text>
+          <Text style={styles.itemTitle}>{item.title}</Text>
+          <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
         </View>
       </Pressable>
-    </Link>
+    </>
   );
 };
 

@@ -1,6 +1,6 @@
-import { Product } from './items';
+import { Item } from './items';
 
-export type OrderStatus = 'Pending' | 'Completed' | 'Shipped' | 'InTransit';
+export type OrderStatus = 'Pending' | 'Completed' | 'Cancelled';
 
 export type Order = {
   id: string;
@@ -9,5 +9,5 @@ export type Order = {
   details: string;
   status: OrderStatus;
   date: string;
-  items: Product[];
+  items: Item[];
 };

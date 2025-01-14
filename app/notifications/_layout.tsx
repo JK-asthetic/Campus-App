@@ -2,13 +2,14 @@ import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { Stack } from "expo-router";
 
-const catogaries_page = () => {
+const Notification_layout = () => {
   return (
     <Stack>
       <Stack.Screen
         name="index"
         options={{
-          headerTitle: "categories_page",
+          headerTitle: "Notifications",
+          headerShown: true,
           headerShadowVisible: false,
           headerStyle: {
             backgroundColor: "#fff",
@@ -23,6 +24,6 @@ const catogaries_page = () => {
   );
 };
 
-export default catogaries_page;
+export default Notification_layout;
 
 const styles = StyleSheet.create({});

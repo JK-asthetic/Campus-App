@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import React from "react";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { CATEGORIES } from "@/assets/categories";
 // import { useCartStore } from "@/store/cart-store";
 // import { supabase } from "@/lib/supabase";
@@ -37,7 +37,7 @@ const ListHeader = () => {
           </View>
         </View>
         <View style={[styles.headerRight]}>
-          <Link href="/" asChild>
+          <Link href={`/cart`} asChild>
             <Pressable>
               {({ pressed }) => (
                 <View
@@ -48,7 +48,7 @@ const ListHeader = () => {
               )}
             </Pressable>
           </Link>
-          <Link href="/" asChild>
+          <Link href={`/notifications`} asChild>
             <Pressable>
               {({ pressed }) => (
                 <View
@@ -86,7 +86,7 @@ const ListHeader = () => {
       <View style={styles.categoriesContainer}>
         <View style={styles.categoriesHeader}>
           <Text style={styles.sectionTitle}>Categories</Text>
-          <Pressable onPress={() => console.log("View All clicked!")}>
+          <Pressable onPress={() => router.push("/menu")}>
             <Text style={styles.viewAllText}>View All</Text>
           </Pressable>
         </View>

@@ -13,6 +13,7 @@ import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { ORDERS } from "@/assets/orders";
+import { Order } from "@/assets/types/order";
 
 const OrderCard = ({ order }: { order: Order }) => (
   <Pressable
@@ -74,7 +75,9 @@ const OrderCard = ({ order }: { order: Order }) => (
       <Text style={styles.totalItems}>{order.items.length} items</Text>
       <Text style={styles.totalPrice}>
         Total: $
-        {order.items.reduce((sum: number, item: { price: any; }) => sum + item.price, 0).toFixed(2)}
+        {order.items
+          .reduce((sum: number, item: { price: any }) => sum + item.price, 0)
+          .toFixed(2)}
       </Text>
     </View>
   </Pressable>

@@ -1,14 +1,23 @@
-import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+// app/menu/_layout.tsx
+import { Stack } from "expo-router";
 
-const _layout = () => {
+export default function MenuLayout() {
   return (
-    <View>
-      <Text>menu</Text>
-    </View>
+    <Stack>
+      <Stack.Screen
+        name="index"
+        options={{
+          headerTitle: "Menu",
+          headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: "#fff",
+          },
+          headerTitleStyle: {
+            fontSize: 18,
+            fontWeight: "600",
+          },
+        }}
+      />
+    </Stack>
   );
-};
-
-export default _layout;
-
-const styles = StyleSheet.create({});
+}

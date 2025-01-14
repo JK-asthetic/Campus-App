@@ -9,7 +9,7 @@ const home = () => {
     <View style={styles.container}>
       <FlatList
         data={ITEMS}
-        renderItem={({ item }) => <ItemList product={item} />}
+        renderItem={({ item }) => <ItemList item={item} />}
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
         ListHeaderComponent={ListHeader}
