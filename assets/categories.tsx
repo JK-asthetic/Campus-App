@@ -28,8 +28,6 @@ export const CATEGORIES: Category[] = [
     slug: "accessories",
     imageUrl:
       "https://images.pexels.com/photos/577769/pexels-photo-577769.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    items: ITEMS.filter(
-      (product) => product.category.slug === "accessories"
-    ),
-  }
+    items: ITEMS.filter((product) => product.category.slug === "accessories"),
+  },
 ];

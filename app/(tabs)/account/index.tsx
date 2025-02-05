@@ -5,10 +5,12 @@ import {
   Image,
   Pressable,
   ScrollView,
+  Alert,
 } from "react-native";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
+import { useAuth } from "@/providers/auth-provider";
 
 // This would normally come from your auth context/store
 const mockUserData = {
@@ -27,9 +29,16 @@ type MenuOptionProps = {
 };
 
 export default function AccountPage() {
+  const { signOut } = useAuth();
+
   const handleSignOut = async () => {
-    // Implement your sign out logic here
-    console.log("Signing out...");
+    try {
+      await signOut();
+      // The redirect will be handled automatically by the auth provider
+    } catch (error) {
+      console.error("Error signing out:", error);
+      Alert.alert("Error", "Failed to sign out. Please try again.");
+    }
   };
 
   const MenuOption: React.FC<MenuOptionProps> = ({

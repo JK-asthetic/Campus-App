@@ -1,3 +1,5 @@
+// app/_layout.tsx
+
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -8,6 +10,7 @@ import { useColorScheme } from "@/components/useColorScheme";
 import CustomSplash from "@/components/Splash_screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import OnboardingScreen from "@/components/OnboardingScreen";
+import AuthProvider from "@/providers/auth-provider";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -81,42 +84,35 @@ export default function RootLayout() {
     );
   }
 
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
   return (
-    <Stack
-      screenOptions={{
-        headerTitleAlign: "center",
-      }}
-    >
-      <Stack.Screen
-        name="(tabs)"
-        options={{ headerShown: false, title: "Shop" }}
-      />
-      <Stack.Screen
-        name="categories"
-        options={{ headerShown: false, title: "Categories" }}
-      />
-      <Stack.Screen
-        name="items"
-        options={{ headerShown: false, title: "Items" }}
-      />
-      <Stack.Screen
-        name="notifications"
-        options={{ headerShown: false, title: "Notifications" }}
-      />
-      <Stack.Screen
-        name="cart"
-        options={{
-          presentation: "modal",
-          title: "Shopping Cart",
-          headerShown: false,
-        }}
-      />
-    </Stack>
+    <AuthProvider>
+      <Stack>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(tabs)"
+          options={{ headerShown: false, title: "Shop" }}
+        />
+        <Stack.Screen
+          name="categories"
+          options={{ headerShown: false, title: "Categories" }}
+        />
+        <Stack.Screen
+          name="items"
+          options={{ headerShown: false, title: "Items" }}
+        />
+        <Stack.Screen
+          name="notifications"
+          options={{ headerShown: false, title: "Notifications" }}
+        />
+        <Stack.Screen
+          name="cart"
+          options={{
+            presentation: "modal",
+            title: "Shopping Cart",
+            headerShown: false,
+          }}
+        />
+      </Stack>
+    </AuthProvider>
   );
 }
