@@ -5,10 +5,10 @@ import { useAuth } from "@/providers/auth-provider";
 
 export default function SignIn() {
   const { session, loading } = useAuth();
-  
+
   if (loading) {
     return (
-      <View style={[styles.container, { alignItems: 'center' }]}>
+      <View style={[styles.container, { alignItems: "center" }]}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -16,11 +16,7 @@ export default function SignIn() {
 
   return (
     <View style={styles.container}>
-      {session && session.user ? (
-        <Account key={session.user.id} session={session} />
-      ) : (
-        <Auth />
-      )}
+      <Auth />
     </View>
   );
 }

@@ -27,7 +27,9 @@ const ListHeader = () => {
         <View style={styles.headerLeft}>
           <View style={styles.avatarContainer}>
             <Image
-              source={{ uri: "https://via.placeholder.com/40" }}
+              source={{
+                uri: "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png",
+              }}
               style={styles.avatarImage}
             />
             <View style={styles.userInfoContainer}>

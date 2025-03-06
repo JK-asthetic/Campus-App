@@ -6,8 +6,6 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
-import { useColorScheme } from "@/components/useColorScheme";
-import CustomSplash from "@/components/Splash_screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import OnboardingScreen from "@/components/OnboardingScreen";
 import AuthProvider from "@/providers/auth-provider";
@@ -19,7 +17,6 @@ SplashScreen.preventAutoHideAsync();
 const ONBOARDING_KEY = "has_seen_onboarding";
 
 export default function RootLayout() {
-  const [showCustomSplash, setShowCustomSplash] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState<"order" | "payment">(
     "order"
@@ -69,12 +66,6 @@ export default function RootLayout() {
     return null;
   }
 
-  if (showCustomSplash) {
-    return (
-      <CustomSplash onAnimationComplete={() => setShowCustomSplash(false)} />
-    );
-  }
-
   if (showOnboarding) {
     return (
       <OnboardingScreen
@@ -87,11 +78,11 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <Stack>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen
           name="(tabs)"
           options={{ headerShown: false, title: "Shop" }}
         />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen
           name="categories"
           options={{ headerShown: false, title: "Categories" }}
