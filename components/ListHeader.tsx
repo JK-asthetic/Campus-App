@@ -12,15 +12,14 @@ import React from "react";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import { CATEGORIES } from "@/assets/categories";
+import { useAuth } from "@/providers/auth-provider";
 // import { useCartStore } from "@/store/cart-store";
 // import { supabase } from "@/lib/supabase";
 
 const ListHeader = () => {
   // const { getItemCount } = useCartStore();
+  const { profile, user } = useAuth();
 
-  const handleSignOut = async () => {
-    // await supabase.auth.signOut();
-  };
   return (
     <View style={[styles.headerContainer]}>
       <View style={styles.headerTop}>
@@ -33,7 +32,9 @@ const ListHeader = () => {
               style={styles.avatarImage}
             />
             <View style={styles.userInfoContainer}>
-              <Text style={styles.avatarText}>codewithlari</Text>
+              <Text style={styles.avatarText}>
+                {profile?.full_name || user?.email}
+              </Text>
               <Text style={styles.subtitleText}>Welcome back! 👋</Text>
             </View>
           </View>

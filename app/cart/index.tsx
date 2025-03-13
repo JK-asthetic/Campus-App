@@ -9,7 +9,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import { useCartStore } from "@/stores/cart-store";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function CartScreen() {
@@ -42,38 +42,40 @@ export default function CartScreen() {
       <ScrollView>
         <View style={styles.itemsContainer}>
           {items.map((item) => (
-            <View key={item.id} style={styles.cartItem}>
-              <Image source={item.heroImage} style={styles.itemImage} />
-              <View style={styles.itemDetails}>
-                <Text style={styles.itemTitle}>{item.title}</Text>
-                <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+            <TouchableOpacity onPress={() => router.push(`/items/${item.id}`)}>
+              <View key={item.id} style={styles.cartItem}>
+                <Image source={item.heroImage} style={styles.itemImage} />
+                <View style={styles.itemDetails}>
+                  <Text style={styles.itemTitle}>{item.title}</Text>
+                  <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
 
-                <View style={styles.quantityContainer}>
-                  <TouchableOpacity
-                    onPress={() => decrementItem(item.id)}
-                    style={styles.quantityButton}
-                  >
-                    <Text style={styles.quantityButtonText}>-</Text>
-                  </TouchableOpacity>
+                  <View style={styles.quantityContainer}>
+                    <TouchableOpacity
+                      onPress={() => decrementItem(item.id)}
+                      style={styles.quantityButton}
+                    >
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
 
-                  <Text style={styles.quantityText}>{item.quantity}</Text>
+                    <Text style={styles.quantityText}>{item.quantity}</Text>
 
-                  <TouchableOpacity
-                    onPress={() => incrementItem(item.id)}
-                    style={styles.quantityButton}
-                  >
-                    <Text style={styles.quantityButtonText}>+</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => incrementItem(item.id)}
+                      style={styles.quantityButton}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
 
-              <TouchableOpacity
-                onPress={() => removeItem(item.id)}
-                style={styles.removeButton}
-              >
-                <Ionicons name="trash-outline" size={24} color="#FF6B6B" />
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity
+                  onPress={() => removeItem(item.id)}
+                  style={styles.removeButton}
+                >
+                  <Ionicons name="trash-outline" size={24} color="#FF6B6B" />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>

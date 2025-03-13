@@ -18,6 +18,7 @@ export const ITEMS: Item[] = [
       slug: 'laptops',
     },
     Orderable: true,
+    description:"abc"
   },
   {
     id: 5,
@@ -35,6 +36,7 @@ export const ITEMS: Item[] = [
       slug: 'laptops',
     },
     Orderable: true,
+    description:"abc"
   },
   {
     id: 2,
@@ -52,6 +54,7 @@ export const ITEMS: Item[] = [
       slug: 'phones',
     },
     Orderable: false,
+    description:"abc"
   },
   {
     id: 6,
@@ -69,6 +72,7 @@ export const ITEMS: Item[] = [
       slug: 'phones',
     },
     Orderable: true,
+    description:"abc"
   },
   {
     id: 7,
@@ -86,5 +90,6 @@ export const ITEMS: Item[] = [
       slug: 'gaming',
     },
     Orderable: true,
+    description:"abc"
   },
 ];

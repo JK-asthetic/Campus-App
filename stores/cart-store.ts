@@ -1,4 +1,4 @@
-import { Item } from "@/types/items";
+import { Item } from "@/assets/types/items";
 import { create } from "zustand";
 
 type CartItemType = {

@@ -12,14 +12,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import { useAuth } from "@/providers/auth-provider";
 
-// This would normally come from your auth context/store
-const mockUserData = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  phone: "+1 234 567 8900",
-  joinDate: "January 2024",
-  totalOrders: 25,
-};
 
 type MenuOptionProps = {
   icon: keyof typeof Ionicons.glyphMap; // This ensures the icon name is valid
@@ -29,6 +21,7 @@ type MenuOptionProps = {
 };
 
 export default function AccountPage() {
+  const { profile, user } = useAuth();
   const { signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -79,11 +72,11 @@ export default function AccountPage() {
           }}
           style={styles.profileImage}
         />
-        <Text style={styles.userName}>{mockUserData.name}</Text>
-        <Text style={styles.userEmail}>{mockUserData.email}</Text>
+        <Text style={styles.userName}>{profile?.full_name}</Text>
+        <Text style={styles.userEmail}>{user?.email}</Text>
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{mockUserData.totalOrders}</Text>
+            <Text style={styles.statNumber}>{profile?.city}</Text>
             <Text style={styles.statLabel}>Orders</Text>
           </View>
           <View style={styles.statDivider} />
@@ -100,7 +93,7 @@ export default function AccountPage() {
           icon="person-outline"
           title="Personal Details"
           subtitle="Update your information"
-          onPress={() => console.log("Navigate to personal details")}
+          onPress={() => router.push("/(tabs)/account/edit_profile")}
         />
         <MenuOption
           icon="receipt-outline"

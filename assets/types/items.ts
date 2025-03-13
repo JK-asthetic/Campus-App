@@ -10,4 +10,5 @@ export type Item = {
   heroImage: ImageSourcePropType;
   category: Omit<Category, 'items'>;
   Orderable: boolean;
+  description: string;
 };

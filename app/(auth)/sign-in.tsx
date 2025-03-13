@@ -1,6 +1,5 @@
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import Auth from "@/components/Auth";
-import Account from "@/components/Account";
 import { useAuth } from "@/providers/auth-provider";
 
 export default function SignIn() {
