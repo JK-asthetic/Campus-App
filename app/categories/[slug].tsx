@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,25 +8,31 @@ import {
   Image,
   TextInput,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { CATEGORIES } from "@/assets/categories";
-import { Item } from "@/types/items";
+import { useStoreData } from "@/hooks/use-store-data";
+import { Item } from "@/assets/types/items";
 
 export default function CategoryPage() {
   const { slug } = useLocalSearchParams();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const { categories, items, loading, error } = useStoreData();
 
   // Find the current category
-  const category = CATEGORIES.find((cat) => cat.slug === slug);
+  const category = categories.find((cat) => cat.slug === slug);
+
+  // Get items for this category
+  const categoryItems = category
+    ? items.filter((item) => item.category_id === category.id)
+    : [];
 
   // Filter items based on search query
-  const filteredItems =
-    category?.items.filter((item) =>
-      item.title.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
+  const filteredItems = categoryItems.filter((item) =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const MenuCard = ({ item }: { item: Item }) => (
     <Pressable
@@ -38,7 +44,7 @@ export default function CategoryPage() {
         <Text style={styles.menuName}>{item.title}</Text>
         <View style={styles.menuBottom}>
           <Text style={styles.menuPrice}>${item.price.toFixed(2)}</Text>
-          {item.Orderable && (
+          {item.orderable && (
             <Pressable
               style={({ pressed }) => [
                 styles.addButton,
@@ -51,13 +57,35 @@ export default function CategoryPage() {
           )}
         </View>
       </View>
-      {!item.Orderable && (
+      {!item.orderable && (
         <View style={styles.unavailableOverlay}>
           <Text style={styles.unavailableText}>Unavailable</Text>
         </View>
       )}
     </Pressable>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1BC464" />
+        <Text style={styles.loadingText}>Loading category...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>
+          Error loading category: {error.message}
+        </Text>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Return to Menu</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   if (!category) {
     return (
@@ -270,5 +298,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#1BC464",
     fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#666",
   },
 });

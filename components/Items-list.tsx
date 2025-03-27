@@ -15,7 +15,7 @@ export const ItemList = ({ item }: { item: Item }) => {
         </View>
         <View style={styles.itemTextContainer}>
           <Text style={styles.itemTitle}>{item.title}</Text>
-          <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+          <Text style={styles.itemPrice}>₹{item.price.toFixed(2)}</Text>
         </View>
       </Pressable>
     </>

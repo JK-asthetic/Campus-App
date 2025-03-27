@@ -7,15 +7,7 @@ export default function MenuLayout() {
       <Stack.Screen
         name="index"
         options={{
-          headerTitle: "Menu",
-          headerShadowVisible: false,
-          headerStyle: {
-            backgroundColor: "#fff",
-          },
-          headerTitleStyle: {
-            fontSize: 18,
-            fontWeight: "600",
-          },
+          headerShown:false
         }}
       />
     </Stack>

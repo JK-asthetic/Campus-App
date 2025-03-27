@@ -7,25 +7,46 @@ import {
   Pressable,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { CATEGORIES } from "@/assets/categories";
-import { Item } from "@/types/items";
+import { useStoreData } from "@/hooks/use-store-data";
 import { useCartStore } from "@/stores/cart-store";
 
 export default function ItemPage() {
-  const { slug } = useLocalSearchParams();
+  const { id } = useLocalSearchParams();
   const router = useRouter();
+  const itemId = parseInt(id as string, 10);
+  const { items, loading, error } = useStoreData();
 
-  // Find the item across all categories
-  const item: Item | undefined = CATEGORIES.reduce(
-    (found: Item | undefined, category) => {
-      if (found) return found;
-      return category.items.find((item) => item.id.toString() === slug);
-    },
-    undefined
-  );
+  // Find the item
+  const item = items.find((item) => item.id === itemId);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1BC464" />
+        <Text style={styles.loadingText}>Loading item details...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>
+          Error loading item: {error.message}
+        </Text>
+        <Pressable
+          style={styles.backToMenuButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>Return to Menu</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -60,21 +81,11 @@ export default function ItemPage() {
             <View style={styles.content}>
               <View style={styles.header}>
                 <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.price}>${item.price.toFixed(2)}</Text>
+                <Text style={styles.price}>₹{item.price.toFixed(2)}</Text>
               </View>
 
               {item.description && (
                 <Text style={styles.description}>{item.description}</Text>
-              )}
-
-              {/* Additional item details can be added here */}
-              {item.allergens && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Allergens</Text>
-                  <Text style={styles.sectionContent}>
-                    {item.allergens.join(", ")}
-                  </Text>
-                </View>
               )}
 
               {item.nutritionalInfo && (
@@ -88,7 +99,7 @@ export default function ItemPage() {
                 </View>
               )}
             </View>
-            {item.Orderable && (
+            {item.orderable && (
               <View style={styles.footer}>
                 <Pressable
                   style={({ pressed }) => [
@@ -125,12 +136,12 @@ export default function ItemPage() {
                 >
                   <Text style={styles.addToCartText}>Add to Cart</Text>
                   <Text style={styles.addToCartPrice}>
-                    ${item.price.toFixed(2)}
+                    ₹{item.price.toFixed(2)}
                   </Text>
                 </Pressable>
               </View>
             )}
-            {!item.Orderable && (
+            {!item.orderable && (
               <View style={styles.unavailableContainer}>
                 <Text style={styles.unavailableText}>
                   Currently Unavailable
@@ -273,5 +284,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#1BC464",
     fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#666",
   },
 });

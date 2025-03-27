@@ -4,11 +4,14 @@ import { Category } from './category';
 export type Item = {
   id: number;
   title: string;
-  slug: string;
   imagesUrl: ImageSourcePropType[];
   price: number;
-  heroImage: ImageSourcePropType;
-  category: Omit<Category, 'items'>;
-  Orderable: boolean;
+  heroImage: any;
+  category_id: number;
+  orderable: boolean;
   description: string;
+  nutritionalInfo?:string;
+  quantity?: number;
 };
+
+

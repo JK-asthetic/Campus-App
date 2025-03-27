@@ -1,8 +1,9 @@
 import { Item } from './items';
 
 export type Category = {
+  id: number;
   name: string;
-  imageUrl: string;
   slug: string;
-  items: Item[];
+  imageUrl: string;
+  items?: Item[];
 };

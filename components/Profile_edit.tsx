@@ -1,37 +1,39 @@
-import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   Image,
+  TextInput,
+  Pressable,
+  ScrollView,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { supabase } from "@/lib/supabase";
-import { Profile, useAuth } from "@/providers/auth-provider";
+import React, { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useAuth } from "@/providers/auth-provider";
 
-export default function ProfileEditor() {
-  const { profile, updateProfile, user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState<Partial<Profile>>({
-    username: "",
+export default function EditProfilePage() {
+  const { profile, updateProfile } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
     full_name: "",
-    avatar_url: "",
+    username: "",
     website: "",
     city: "",
     country: "",
   });
 
   useEffect(() => {
+    // Pre-fill form with existing profile data when component mounts
     if (profile) {
       setFormData({
-        username: profile.username || "",
         full_name: profile.full_name || "",
-        avatar_url: profile.avatar_url || "",
+        username: profile.username || "",
         website: profile.website || "",
         city: profile.city || "",
         country: profile.country || "",
@@ -39,250 +41,275 @@ export default function ProfileEditor() {
     }
   }, [profile]);
 
-  const handleChange = (key: keyof Profile, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleSave = async () => {
-    if (!formData.username) {
-      Alert.alert("Error", "Username is required");
-      return;
-    }
+    setIsLoading(true);
 
-    setLoading(true);
     try {
       const { success, error } = await updateProfile(formData);
 
       if (success) {
         Alert.alert("Success", "Profile updated successfully");
+        setIsEditing(false);
       } else {
         Alert.alert("Error", error?.message || "Failed to update profile");
       }
     } catch (error) {
-      console.error("Error saving profile:", error);
+      console.error("Error updating profile:", error);
       Alert.alert("Error", "An unexpected error occurred");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const pickImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
+  const handleCancel = () => {
+    // Reset form data to original profile data
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || "",
+        username: profile.username || "",
+        website: profile.website || "",
+        city: profile.city || "",
+        country: profile.country || "",
       });
-
-      if (!result.canceled) {
-        await uploadAvatar(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error("Error picking image:", error);
-      Alert.alert("Error", "Failed to pick image");
     }
+    setIsEditing(false);
   };
 
-  const uploadAvatar = async (uri: string) => {
-    if (!user) return;
-
-    setUploading(true);
-    try {
-      // Convert URI to blob
-      const response = await fetch(uri);
-      const blob = await response.blob();
-
-      // Create a unique file path
-      const fileExt = uri.substring(uri.lastIndexOf(".") + 1);
-      const filePath = `avatars/${user.id}/${Date.now()}.${fileExt}`;
-
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, blob);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-
-      // Update profile with new avatar URL
-      setFormData((prev) => ({ ...prev, avatar_url: data.publicUrl }));
-    } catch (error) {
-      console.error("Error uploading avatar:", error);
-      Alert.alert("Error", "Failed to upload avatar");
-    } finally {
-      setUploading(false);
-    }
-  };
+  // Profile Field component for both view and edit modes
+  const ProfileField = ({
+    label,
+    value,
+    field,
+    icon,
+    placeholder,
+  }: {
+    label: string;
+    value: string;
+    field: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    placeholder: string;
+  }) => (
+    <View style={styles.fieldContainer}>
+      <View style={styles.fieldIconContainer}>
+        <Ionicons name={icon} size={20} color="#1BC464" />
+      </View>
+      <View style={styles.fieldContent}>
+        <Text style={styles.fieldLabel}>{label}</Text>
+        {isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={formData[field as keyof typeof formData]}
+            onChangeText={(text) => handleInputChange(field, text)}
+            placeholder={placeholder}
+            placeholderTextColor="#999"
+          />
+        ) : (
+          <Text style={styles.fieldValue}>{value || "Not provided"}</Text>
+        )}
+      </View>
+    </View>
+  );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Edit Profile</Text>
-
-      <View style={styles.avatarContainer}>
-        <TouchableOpacity onPress={pickImage} disabled={uploading}>
-          {formData.avatar_url ? (
-            <Image
-              source={{ uri: formData.avatar_url }}
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {formData.username ? formData.username[0].toUpperCase() : "?"}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <ScrollView style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#1BC464" />
+          </Pressable>
+          <Text style={styles.headerTitle}>Profile</Text>
+          <Pressable
+            onPress={() => (isEditing ? handleSave() : setIsEditing(true))}
+            style={styles.editButton}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#1BC464" />
+            ) : (
+              <Text style={styles.editButtonText}>
+                {isEditing ? "Save" : "Edit"}
               </Text>
-            </View>
+            )}
+          </Pressable>
+        </View>
+
+        {/* Profile Image Section */}
+        <View style={styles.profileImageSection}>
+          <Image
+            source={{
+              uri:
+                profile?.avatar_url ||
+                "https://images.pexels.com/photos/577769/pexels-photo-577769.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+            }}
+            style={styles.profileImage}
+          />
+          {isEditing && (
+            <Pressable style={styles.changePhotoButton}>
+              <Text style={styles.changePhotoText}>Change Photo</Text>
+            </Pressable>
           )}
-          {uploading && (
-            <View style={styles.uploadingOverlay}>
-              <ActivityIndicator color="#fff" />
-            </View>
-          )}
-        </TouchableOpacity>
-        <Text style={styles.avatarLabel}>Tap to change avatar</Text>
-      </View>
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Username *</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.username || ""}
-          onChangeText={(text) => handleChange("username", text)}
-          placeholder="Username"
-          autoCapitalize="none"
-        />
-      </View>
+        {/* Profile Fields */}
+        <View style={styles.fieldsContainer}>
+          <ProfileField
+            label="Full Name"
+            value={profile?.full_name || ""}
+            field="full_name"
+            icon="person"
+            placeholder="Enter your full name"
+          />
+          <ProfileField
+            label="Username"
+            value={profile?.username || ""}
+            field="username"
+            icon="at"
+            placeholder="Enter your username"
+          />
+          <ProfileField
+            label="Website"
+            value={profile?.website || ""}
+            field="website"
+            icon="globe"
+            placeholder="Enter your website"
+          />
+          <ProfileField
+            label="City"
+            value={profile?.city || ""}
+            field="city"
+            icon="location"
+            placeholder="Enter your city"
+          />
+          <ProfileField
+            label="Country"
+            value={profile?.country || ""}
+            field="country"
+            icon="flag"
+            placeholder="Enter your country"
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.full_name || ""}
-          onChangeText={(text) => handleChange("full_name", text)}
-          placeholder="Full Name"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Website</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.website || ""}
-          onChangeText={(text) => handleChange("website", text)}
-          placeholder="Website"
-          autoCapitalize="none"
-          keyboardType="url"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>City</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.city || ""}
-          onChangeText={(text) => handleChange("city", text)}
-          placeholder="City"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Country</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.country || ""}
-          onChangeText={(text) => handleChange("country", text)}
-          placeholder="Country"
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={handleSave}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Save Changes</Text>
+        {/* Cancel Button (only visible in edit mode) */}
+        {isEditing && (
+          <Pressable
+            style={styles.cancelButton}
+            onPress={handleCancel}
+            disabled={isLoading}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </Pressable>
         )}
-      </TouchableOpacity>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    backgroundColor: "#fff",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  avatarContainer: {
+  header: {
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+  backButton: {
+    padding: 5,
   },
-  avatarPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "#ccc",
-    justifyContent: "center",
-    alignItems: "center",
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
   },
-  avatarText: {
-    fontSize: 40,
-    color: "#fff",
+  editButton: {
+    padding: 5,
   },
-  avatarLabel: {
-    marginTop: 8,
-    color: "#666",
-  },
-  uploadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    borderRadius: 50,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  formGroup: {
-    marginBottom: 16,
-  },
-  label: {
+  editButtonText: {
+    color: "#1BC464",
+    fontWeight: "600",
     fontSize: 16,
-    marginBottom: 8,
+  },
+  profileImageSection: {
+    alignItems: "center",
+    padding: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  changePhotoButton: {
+    padding: 5,
+  },
+  changePhotoText: {
+    color: "#1BC464",
     fontWeight: "500",
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
+  fieldsContainer: {
+    padding: 15,
   },
-  button: {
-    backgroundColor: "#0284c7",
-    paddingVertical: 14,
-    borderRadius: 8,
+  fieldContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 20,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 12,
+    padding: 15,
+  },
+  fieldIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f0f8f4",
+    justifyContent: "center",
     alignItems: "center",
-    marginTop: 16,
+    marginRight: 15,
   },
-  buttonDisabled: {
-    backgroundColor: "#93c5fd",
+  fieldContent: {
+    flex: 1,
   },
-  buttonText: {
-    color: "#fff",
+  fieldLabel: {
+    fontSize: 14,
+    color: "gray",
+    marginBottom: 5,
+  },
+  fieldValue: {
     fontSize: 16,
+    color: "#333",
+  },
+  input: {
+    fontSize: 16,
+    color: "#333",
+    paddingVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  cancelButton: {
+    alignItems: "center",
+    margin: 15,
+    padding: 15,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 12,
+  },
+  cancelButtonText: {
+    color: "#999",
     fontWeight: "600",
+    fontSize: 16,
   },
 });

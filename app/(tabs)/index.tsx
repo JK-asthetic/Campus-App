@@ -1,14 +1,41 @@
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+} from "react-native";
 import React from "react";
-import { ITEMS } from "@/assets/Items";
 import { ItemList } from "@/components/Items-list";
 import ListHeader from "@/components/ListHeader";
+import { useStoreData } from "@/hooks/use-store-data";
 
-const home = () => {
+const Home = () => {
+  const { items, loading, error } = useStoreData();
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Loading items...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>
+          Error loading items: {error.message}
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
-        data={ITEMS}
+        data={items}
         renderItem={({ item }) => <ItemList item={item} />}
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
@@ -17,12 +44,17 @@ const home = () => {
         contentContainerStyle={styles.flatListContent}
         columnWrapperStyle={styles.flatListColumn}
         style={styles.flatList}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No items found</Text>
+          </View>
+        }
       />
     </View>
   );
 };
 
-export default home;
+export default Home;
 
 const styles = StyleSheet.create({
   container: {
@@ -38,5 +70,33 @@ const styles = StyleSheet.create({
   },
   flatList: {
     paddingVertical: 5,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    fontSize: 16,
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
   },
 });

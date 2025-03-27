@@ -4,21 +4,42 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput, // Add this import
-  TouchableOpacity,
+  TextInput,
   View,
 } from "react-native";
 import React from "react";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
-import { CATEGORIES } from "@/assets/categories";
 import { useAuth } from "@/providers/auth-provider";
-// import { useCartStore } from "@/store/cart-store";
-// import { supabase } from "@/lib/supabase";
+import { useStoreData } from "@/hooks/use-store-data";
+import { ActivityIndicator } from "react-native";
+import { Category } from "@/assets/types/category";
 
 const ListHeader = () => {
-  // const { getItemCount } = useCartStore();
   const { profile, user } = useAuth();
+  const { categories, loading, error } = useStoreData();
+
+  // Render loading state
+  if (loading) {
+    return (
+      <View style={[styles.headerContainer, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#1BC464" />
+        <Text style={styles.loadingText}>Loading categories...</Text>
+      </View>
+    );
+  }
+
+  // Render error state
+  if (error) {
+    return (
+      <View style={[styles.headerContainer, styles.errorContainer]}>
+        <Text style={styles.errorText}>
+          Failed to load categories. Please try again later.
+        </Text>
+        <Text style={styles.errorDetailText}>{error.message}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.headerContainer]}>
@@ -94,8 +115,8 @@ const ListHeader = () => {
           </Pressable>
         </View>
         <FlatList
-          data={CATEGORIES}
-          renderItem={({ item }) => (
+          data={categories}
+          renderItem={({ item }: { item: Category }) => (
             <Link asChild href={`/categories/${item.slug}`}>
               <Pressable style={styles.category}>
                 <Image
@@ -106,7 +127,7 @@ const ListHeader = () => {
               </Pressable>
             </Link>
           )}
-          keyExtractor={(item) => item.name}
+          keyExtractor={(item) => item.id.toString()}
           horizontal
           showsHorizontalScrollIndicator={false}
         />
@@ -257,5 +278,32 @@ const styles = StyleSheet.create({
     justifyContent: "center", // Center the icon vertically
     alignItems: "center", // Center the icon horizontally
     marginRight: 15, // Add spacing between icons
+  },
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#666",
+  },
+  errorContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FF4B4B",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  errorDetailText: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
   },
 });

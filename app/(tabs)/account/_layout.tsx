@@ -21,15 +21,7 @@ export default function AccountLayout() {
       <Stack.Screen
         name="edit_profile"
         options={{
-          headerTitle: "My Account",
-          headerShadowVisible: false,
-          headerStyle: {
-            backgroundColor: "#fff",
-          },
-          headerTitleStyle: {
-            fontSize: 18,
-            fontWeight: "600",
-          },
+          headerShown: false,
         }}
       />
     </Stack>
