@@ -18,10 +18,15 @@ export default function ItemPage() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const itemId = parseInt(id as string, 10);
-  const { items, loading, error } = useStoreData();
+  const { items, loading, error, fetchData, getItemById } = useStoreData();
 
-  // Find the item
-  const item = items.find((item) => item.id === itemId);
+  // Fetch data when component mounts
+  React.useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Get item using the store helper
+  const item = getItemById(itemId);
 
   if (loading) {
     return (

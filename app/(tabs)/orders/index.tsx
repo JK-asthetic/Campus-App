@@ -1,5 +1,4 @@
-// app/orders/index.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,83 +7,118 @@ import {
   Image,
   Pressable,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { ORDERS } from "@/assets/orders";
-import { Order } from "@/assets/types/order";
+import { Order, OrderStatus } from "@/assets/types/order";
+import { Item } from "@/assets/types/items";
+import { useOrderStore } from "@/stores/order-store";
 
-const OrderCard = ({ order }: { order: Order }) => (
-  <Pressable
-    style={styles.orderCard}
-    onPress={() => console.log(`Navigate to order ${order.id}`)}
-  >
-    <View style={styles.orderHeader}>
-      <Text style={styles.orderDate}>
-        {new Date(order.date).toLocaleDateString()}
-      </Text>
-      <View
-        style={[
-          styles.statusBadge,
-          {
-            backgroundColor:
-              order.status === "Completed"
-                ? "#E7F6EC"
-                : order.status === "Pending"
-                ? "#FFF4E5"
-                : "#FFE8E8",
-          },
-        ]}
-      >
-        <Text
+const OrderCard = ({ order }: { order: Order }) => {
+  const router = useRouter();
+
+  const handleOrderPress = () => {
+    router.push(`/(tabs)/orders/${order.id}`);
+  };
+
+  return (
+    <Pressable style={styles.orderCard} onPress={handleOrderPress}>
+      <View style={styles.orderHeader}>
+        <Text style={styles.orderDate}>{order.date}</Text>
+        <View
           style={[
-            styles.statusText,
+            styles.statusBadge,
             {
-              color:
-                order.status === "Completed"
-                  ? "#1BC464"
-                  : order.status === "Pending"
-                  ? "#FFA500"
-                  : "#FF4B4B",
+              backgroundColor:
+                order.status === "delivered"
+                  ? "#E7F6EC"
+                  : order.status === "pending"
+                  ? "#FFF4E5"
+                  : order.status === "shipped"
+                  ? "#EDE7F6"
+                  : "#FFE8E8",
             },
           ]}
         >
-          {order.status}
-        </Text>
-      </View>
-    </View>
-
-    <FlatList
-      data={order.items}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      renderItem={({ item }) => (
-        <View style={styles.productItem}>
-          <Image source={item.heroImage} style={styles.productImage} />
-          <Text style={styles.productTitle} numberOfLines={1}>
-            {item.title}
+          <Text
+            style={[
+              styles.statusText,
+              {
+                color:
+                  order.status === "delivered"
+                    ? "#1BC464"
+                    : order.status === "pending"
+                    ? "#FFA500"
+                    : order.status === "shipped"
+                    ? "#673AB7"
+                    : "#FF4B4B",
+              },
+            ]}
+          >
+            {order.status}
           </Text>
-          <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
         </View>
+      </View>
+
+      {order.items.length > 0 ? (
+        <FlatList
+          data={order.items}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <View style={styles.productItem}>
+              <Image source={item.heroImage} style={styles.productImage} />
+              <Text style={styles.productTitle} numberOfLines={1}>
+                {item.title}
+              </Text>
+              <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
+            </View>
+          )}
+          keyExtractor={(item) => item.id.toString()}
+        />
+      ) : (
+        <Text style={styles.orderItemCount}>{order.item}</Text>
       )}
-      keyExtractor={(item) => item.id.toString()}
-    />
 
-    <View style={styles.orderFooter}>
-      <Text style={styles.totalItems}>{order.items.length} items</Text>
-      <Text style={styles.totalPrice}>
-        Total: $
-        {order.items
-          .reduce((sum: number, item: { price: any }) => sum + item.price, 0)
-          .toFixed(2)}
-      </Text>
-    </View>
-  </Pressable>
-);
+      <View style={styles.orderFooter}>
+        <Text style={styles.totalItems}>{order.item}</Text>
+        <Text style={styles.totalPrice}>{order.details}</Text>
+      </View>
+    </Pressable>
+  );
+};
 
-const OrdersList = ({ status }: { status: Order["status"] }) => {
-  const filteredOrders = ORDERS.filter((order) => order.status === status);
+const OrdersList = ({ status }: { status: OrderStatus }) => {
+  const { orders, isLoading, error, fetchOrders } = useOrderStore();
+  
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const filteredOrders = orders.filter((order) => order.status === status);
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1BC464" />
+        <Text style={styles.loadingText}>Loading orders...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Ionicons name="alert-circle-outline" size={48} color="#FF4B4B" />
+        <Text style={styles.errorText}>Error: {error}</Text>
+        <Pressable style={styles.retryButton} onPress={fetchOrders}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <FlatList
@@ -108,14 +142,16 @@ export default function OrdersPage() {
   const [index, setIndex] = useState(0);
   const [routes] = useState([
     { key: "pending", title: "Pending" },
-    { key: "completed", title: "Completed" },
+    { key: "shipped", title: "Shipped" },
+    { key: "delivered", title: "Delivered" },
     { key: "cancelled", title: "Cancelled" },
   ]);
 
   const renderScene = SceneMap({
-    pending: () => <OrdersList status="Pending" />,
-    completed: () => <OrdersList status="Completed" />,
-    cancelled: () => <OrdersList status="Cancelled" />,
+    pending: () => <OrdersList status="pending" />,
+    shipped: () => <OrdersList status="shipped" />,
+    delivered: () => <OrdersList status="delivered" />,
+    cancelled: () => <OrdersList status="cancelled" />,
   });
 
   return (
@@ -132,6 +168,8 @@ export default function OrdersPage() {
           indicatorStyle={styles.tabIndicator}
           activeColor="#1BC464"
           inactiveColor="gray"
+          scrollEnabled={true}
+          tabStyle={{ width: 'auto' }}
         />
       )}
     />
@@ -150,12 +188,14 @@ const styles = StyleSheet.create({
     textTransform: "none",
     fontWeight: "600",
     fontSize: 14,
+    paddingHorizontal: 8,
   },
   tabIndicator: {
     backgroundColor: "#1BC464",
   },
   ordersList: {
     padding: 15,
+    flexGrow: 1,
   },
   orderCard: {
     backgroundColor: "#fff",
@@ -189,6 +229,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontWeight: "600",
+    textTransform: "capitalize",
   },
   productItem: {
     marginRight: 15,
@@ -237,5 +278,44 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: "gray",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "gray",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#FF4B4B",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: "#1BC464",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: "white",
+    fontWeight: "600",
+  },
+  orderItemCount: {
+    fontSize: 14,
+    color: "gray",
+    marginBottom: 10,
   },
 });

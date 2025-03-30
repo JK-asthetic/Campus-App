@@ -42,8 +42,11 @@ export default function CartScreen() {
       <ScrollView>
         <View style={styles.itemsContainer}>
           {items.map((item) => (
-            <TouchableOpacity onPress={() => router.push(`/items/${item.id}`)}>
-              <View key={item.id} style={styles.cartItem}>
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => router.push(`/items/${item.id}`)}
+            >
+              <View style={styles.cartItem}>
                 <Image source={item.heroImage} style={styles.itemImage} />
                 <View style={styles.itemDetails}>
                   <Text style={styles.itemTitle}>{item.title}</Text>
@@ -86,7 +89,10 @@ export default function CartScreen() {
           <Text style={styles.totalPrice}>${getTotalPrice()}</Text>
         </View>
 
-        <TouchableOpacity style={styles.checkoutButton}>
+        <TouchableOpacity
+          style={styles.checkoutButton}
+          onPress={() => router.push("/screens/CheckoutScreen")}
+        >
           <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
         </TouchableOpacity>
       </View>

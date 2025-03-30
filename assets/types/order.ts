@@ -1,6 +1,6 @@
-import { Item } from './items';
+import { Item } from "./items";
 
-export type OrderStatus = 'Pending' | 'Completed' | 'Cancelled';
+export type OrderStatus = 'pending' | 'shipped' | 'delivered' | 'cancelled';
 
 export type Order = {
   id: string;

@@ -17,7 +17,12 @@ import { Category } from "@/assets/types/category";
 
 const ListHeader = () => {
   const { profile, user } = useAuth();
-  const { categories, loading, error } = useStoreData();
+  const { categories, loading, error, fetchData } = useStoreData();
+
+  // Fetch data when component mounts
+  React.useEffect(() => {
+    fetchData();
+  }, []);
 
   // Render loading state
   if (loading) {
@@ -87,16 +92,6 @@ const ListHeader = () => {
               )}
             </Pressable>
           </Link>
-        </View>
-      </View>
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={20} color="gray" />
-          <TextInput
-            placeholder="Search products..."
-            style={styles.searchInput}
-            placeholderTextColor="gray"
-          />
         </View>
       </View>
 

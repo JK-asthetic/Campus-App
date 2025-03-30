@@ -12,7 +12,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import { useAuth } from "@/providers/auth-provider";
 
-
 type MenuOptionProps = {
   icon: keyof typeof Ionicons.glyphMap; // This ensures the icon name is valid
   title: string;
@@ -99,7 +98,7 @@ export default function AccountPage() {
           icon="receipt-outline"
           title="Order History"
           subtitle="View your past orders"
-          onPress={() => router.push("/(tabs)")}
+          onPress={() => router.push("/(tabs)/orders")}
         />
         <MenuOption
           icon="card-outline"

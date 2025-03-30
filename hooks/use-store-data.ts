@@ -1,79 +1,100 @@
-import { useState, useEffect } from "react";
+import { create } from 'zustand';
 import { fetchCategories, fetchAllItems } from "@/lib/supabase-service";
 import { Item } from "@/assets/types/items";
 import { Category } from "@/assets/types/category";
 import { supabase } from "@/lib/supabase";
 
-export const useStoreData = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  // Get proper image URL for category images
-  const getCategoryImageUrl = (path: string) => {
-    const { data } = supabase.storage.from("categories").getPublicUrl(path);
-    return data?.publicUrl || "";
+interface StoreState {
+  categories: Category[];
+  items: Item[];
+  loading: boolean;
+  error: Error | null;
+  lastFetched: {
+    items: number;
+    categories: number;
   };
+  fetchData: () => Promise<void>;
+  getItemsByCategory: (categoryId: number) => Item[];
+  getItemById: (id: number) => Item | undefined;
+  getCategoryBySlug: (slug: string) => Category | undefined;
+}
 
-  // Process items - heroImage is already a full URL so no processing needed
-  const processItems = (items: Item[]) => {
-    return items.map(item => ({
-      ...item,
-      // No need to process URLs that are already complete
-      heroImage: item.heroImage 
-        ? { uri: item.heroImage } 
-        : require("@/assets/images/cake-2.jpeg")
-    }));
-  };
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-  // Process categories - imageUrl is just a filename that needs to be converted to full URL
-  const processCategories = (categories: Category[]) => {
-    return categories.map(category => ({
-      ...category,
-      imageUrl: category.imageUrl 
-        ? getCategoryImageUrl(category.imageUrl) 
-        : ""
-    }));
-  };
+export const useStoreData = create<StoreState>((set, get) => ({
+  categories: [],
+  items: [],
+  loading: true,
+  error: null,
+  lastFetched: {
+    items: 0,
+    categories: 0,
+  },
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const [categoriesData, itemsData] = await Promise.all([
-          fetchCategories(),
-          fetchAllItems()
-        ]);
+  fetchData: async () => {
+    const now = Date.now();
+    const { lastFetched } = get();
 
-        setCategories(processCategories(categoriesData));
-        setItems(processItems(itemsData));
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('An unknown error occurred'));
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Return if cache is still fresh and we have data
+    if (
+      now - lastFetched.items < CACHE_DURATION &&
+      now - lastFetched.categories < CACHE_DURATION &&
+      get().items.length > 0 &&
+      get().categories.length > 0
+    ) {
+      return;
+    }
 
-    loadData();
-  }, []);
+    try {
+      set({ loading: true, error: null });
+      
+      const [categoriesData, itemsData] = await Promise.all([
+        fetchCategories(),
+        fetchAllItems()
+      ]);
 
-  // Get items for a specific category
-  const getItemsByCategory = (categoryId: number) => {
-    return items.filter(item => item.category_id === categoryId);
-  };
+      // Process categories - convert imageUrl to full URL
+      const processedCategories = categoriesData.map(category => ({
+        ...category,
+        imageUrl: category.imageUrl 
+          ? supabase.storage.from("categories").getPublicUrl(category.imageUrl).data?.publicUrl 
+          : ""
+      }));
 
-  // Get a specific item by ID
-  const getItemById = (id: number) => {
-    return items.find(item => item.id === id);
-  };
+      // Process items - ensure heroImage is proper format
+      const processedItems = itemsData.map(item => ({
+        ...item,
+        heroImage: item.heroImage 
+          ? { uri: item.heroImage } 
+          : require("@/assets/images/cake-2.jpeg")
+      }));
 
-  return {
-    categories,
-    items,
-    loading,
-    error,
-    getItemsByCategory,
-    getItemById
-  };
-};
+      set({
+        categories: processedCategories,
+        items: processedItems,
+        lastFetched: {
+          items: now,
+          categories: now,
+        }
+      });
+    } catch (err) {
+      set({ 
+        error: err instanceof Error ? err : new Error('An unknown error occurred')
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  getItemsByCategory: (categoryId: number) => {
+    return get().items.filter(item => item.category_id === categoryId);
+  },
+
+  getItemById: (id: number) => {
+    return get().items.find(item => item.id === id);
+  },
+
+  getCategoryBySlug: (slug: string) => {
+    return get().categories.find(category => category.slug === slug);
+  }
+}));

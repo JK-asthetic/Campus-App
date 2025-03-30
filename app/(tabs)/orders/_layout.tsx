@@ -18,6 +18,12 @@ export default function OrdersLayout() {
           },
         }}
       />
+      <Stack.Screen
+        name="[id].tsx"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

@@ -4,19 +4,29 @@ import {
   Text,
   View,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import React from "react";
 import { ItemList } from "@/components/Items-list";
 import ListHeader from "@/components/ListHeader";
 import { useStoreData } from "@/hooks/use-store-data";
+import { router } from "expo-router";
 
 const Home = () => {
-  const { items, loading, error } = useStoreData();
+  const { items, loading, error, fetchData } = useStoreData();
+
+  // Fetch data when component mounts
+  React.useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Limit items to first 10 (5 rows x 2 columns)
+  const limitedItems = items.slice(0, 10);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#1BC464" />
         <Text style={styles.loadingText}>Loading items...</Text>
       </View>
     );
@@ -35,7 +45,7 @@ const Home = () => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={items}
+        data={limitedItems}
         renderItem={({ item }) => <ItemList item={item} />}
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
@@ -98,5 +108,18 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: "#666",
+  },
+  viewAllButton: {
+    backgroundColor: "#1BC464",
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    marginBottom: 20,
+    alignItems: "center",
+  },
+  viewAllButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
